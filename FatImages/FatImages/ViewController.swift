@@ -57,13 +57,37 @@ class ViewController: UIViewController {
     // this method avoids blocking by creating a background queue, without blocking the UI
     @IBAction func simpleAsynchronousDownload(sender: UIBarButtonItem) {
         // TODO: finish implementation
-        print("TODO: simpleAsynchronousDownload")
+        let url = URL(string: BigImages.shark.rawValue)
+        let download = DispatchQueue(label: "download")
+        activityView.startAnimating()
+        download.async {
+            let imgData = try? Data(contentsOf: url!)
+            let image = UIImage(data: imgData!)
+            DispatchQueue.main.async {
+                self.photoView.image = image
+                self.activityView.stopAnimating()
+            }
+        }
     }
     
     // MARK: - Async Download (with Completion Handler)
     
     @IBAction func asynchronousDownload(sender: UIBarButtonItem) {
         // TODO: finish implementation
-        print("TODO: asynchronousDownload")
+        activityView.startAnimating()
+        withBigImage { (image) in
+            self.photoView.image = image
+            self.activityView.stopAnimating()
+        }
+    }
+    
+    func withBigImage(completionHandler handler: @escaping (UIImage) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            if let url = URL(string: BigImages.shark.rawValue), let imgData = try? Data(contentsOf: url), let image = UIImage(data: imgData) {
+                DispatchQueue.main.async {
+                    handler(image)
+                }
+            }
+        }
     }
 }
